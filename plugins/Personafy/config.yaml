@@ -1,0 +1,15 @@
+name: Personafy
+version: 0.1
+id: Personafy
+key: Personafy
+author_name: Jay Allen, Endevver Consulting
+author_link: http://endevver.com/
+description: Persists specified author information in entry custom fields at the time of creation or assignment.
+plugin_link: http://endevver.com/plugins/anon-public-posts
+doc_link: http://endevver.com/plugins/anon-public-posts
+
+callbacks:
+    api_pre_save.entry: $Personafy::Personafy::api_pre_save_entry 
+    cms_pre_save.entry: $Personafy::Personafy::cms_pre_save_entry
+    # MT::Entry::pre_save: $Personafy::Personafy::obj_pre_save_entry
+    # cms_post_save.entry: $Personafy::Personafy::cms_post_save_entry
