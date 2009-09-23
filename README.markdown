@@ -6,7 +6,7 @@ The Personafy plugin freezes the state of the persona field of the entry author'
 
 ## VERSION ##
 
-1.0 (Released September 22, 2009)
+0.2 (Released September 22, 2009)
 
 ## REQUIREMENTS ##
 
@@ -22,6 +22,7 @@ Download the code or the Git repo. Inside you will find a directory (under `plug
 ## VERSION HISTORY ##
 
 * **09/22/2009** - Initial release with v0.1 (beta)
+* **09/22/2009** - Version 0.2 (beta) fixing remnant Log4MT logging code
 
 ## AUTHOR ##
 
