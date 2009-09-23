@@ -2,7 +2,7 @@ package Personafy;
 
 use strict;
 use warnings;
-our $logger; use MT::Log::Log4perl qw( l4mtdump );
+# our $logger; use MT::Log::Log4perl qw( l4mtdump );
 
 sub entry_cust_field() { return "customfield_authorpersona" }
 
@@ -20,7 +20,7 @@ my %persona_meta = (
 # special application parameters.
 sub cms_pre_save_entry {
     my ( $cb, $app, $obj, $original ) = @_;
-    $logger ||= MT::Log::Log4perl->new(); $logger->trace();
+    # $logger ||= MT::Log::Log4perl->new(); $logger->trace();
     my ($author, $author_id);
 
     # EXISTING ENTRY EXCLUSION                   # DETAILS
@@ -35,11 +35,11 @@ sub cms_pre_save_entry {
         $author    = $obj->author;
     }
 
-    $logger->info(
-        join " ", 'STORING PERSONA FOR',
-                  ( $obj->id ? ' EXISTING' : 'NEW' ), 'ENTRY');
-    $logger->info('  OBJ->AUTHOR: ', $obj->author_id);
-    $logger->info('  ORIGINAL->AUTHOR: ', $original->author_id);
+    # $logger->info(
+    #     join " ", 'STORING PERSONA FOR',
+    #               ( $obj->id ? ' EXISTING' : 'NEW' ), 'ENTRY');
+    # $logger->info('  OBJ->AUTHOR: ', $obj->author_id);
+    # $logger->info('  ORIGINAL->AUTHOR: ', $original->author_id);
 
     $author_id ||= $app->param('new_author_id') || $obj->author_id;
     $author    ||= MT->model('user')->load( $author_id );
@@ -145,7 +145,7 @@ return;
 
 sub persist_user_persona {
     my ( $app, $e, $user ) = @_;
-    $logger        ||= MT::Log::Log4perl->new(); $logger->trace();
+    # $logger        ||= MT::Log::Log4perl->new(); $logger->trace();
     my $epersona     = persona( $e );
     my $persona      = persona( $user || $e->author ) or return;
     if ( $persona ne $epersona ) {
@@ -166,7 +166,7 @@ sub persona {
 
 sub cms_post_save_entry {
     my ($cb, $app, $obj, $orig) = @_;
-    $logger ||= MT::Log::Log4perl->new(); $logger->trace();
+    # $logger ||= MT::Log::Log4perl->new(); $logger->trace();
     # $logger->debug('$obj post save: ', l4mtdump($obj));
     # $logger->debug('$obj->meta_obj: ', l4mtdump($obj->meta_obj));
 }
