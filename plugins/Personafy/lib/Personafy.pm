@@ -4,7 +4,8 @@ use strict;
 use warnings;
 # our $logger; use MT::Log::Log4perl qw( l4mtdump );
 
-sub entry_cust_field() { return "customfield_authorpersona" }
+sub entry_persona_field()   { return "customfield_authorpersona" }
+sub entry_submitter_field() { return "customfield_submitter" }
 
 my %persona_meta = (
     user  => 'field.persona',
@@ -22,6 +23,9 @@ sub cms_pre_save_entry {
     my ( $cb, $app, $obj, $original ) = @_;
     # $logger ||= MT::Log::Log4perl->new(); $logger->trace();
     my ($author, $author_id);
+
+    # Save the original author for new and legacy entries
+    persist_submitter( $app, $obj );
 
     # EXISTING ENTRY EXCLUSION                   # DETAILS
     return 1 if $obj->id                         # Existing entry
@@ -67,80 +71,27 @@ sub cms_pre_save_entry {
 # called by any arbitrary MT::App subclass or non-MT::App script or plugin
 sub api_pre_save_entry {
     my ( $cb, $app, $entry, $orig ) = @_;
-    require Carp; import Carp qw( longmess );
-    $app->log(
-        message =>  (sprintf 'Personafy exception: Unhandled entry save by %s: %s',
-                        ref($app), longmess()),
-        level    => MT::Log::ERROR(),
-        class    => 'entry',
-    );
+    # $logger ||= MT::Log::Log4perl->new(); $logger->trace();
+    # Save the original author for new and legacy entries
+    persist_submitter( $app, $entry );
     1;
 }
 
-#
-# MT::ENTRY::PRE_SAVE (OBJECT-LEVEL) CALLBACK HANDLER
-#
-# Serves as a fallback mechanism for persisting author personas in
-# entries that are saved without triggering either the
-# cms_pre_save.entry or api_pre_save.entry callbacks.
-sub obj_pre_save_entry {
-    my ($cb, $obj, $original) = @_;
-return;
-    # $logger ||= MT::Log::Log4perl->new(); $logger->trace();
-    # 
-    # # We should only be operating on entries, not pages.
-    # return unless 'entry' eq $obj->class_type;
-    # 
-    # # If an existing entry, only continue if the entry author has been modified
-    # return if $obj->id and ! $obj->is_changed('author_id');
-    # 
-    # $logger->info('>>>>> Storing author metadata in entry <<<<<<');
-    
-    # my $app = MT->instance;
-    # if ( $app ) {
-    #     
-    # }
-    # my $oldauthor = $obj->author;
-    # my $newauthor = MT->model('user')->load( $obj->author_id );
-    # $persona = {
-    #     author => { old => $obj->author->meta('field.persona'),
-    #                 new => $newauthor->meta('field.persona') },
-    #     entry  => $obj->meta('field.authorpersona'),
-    #     )
-    # 
-    # 
-    # 
-    # my $entry_persona = ;
-    # $logger->info('OBJ PERSONA: ', $persona);
-    # my $newpersona = ;
-    # $logger->info('NEW PERSONA: ', $newpersona);
+sub persist_submitter {
+    my ( $app, $e, $user ) = @_;
+    # $logger        ||= MT::Log::Log4perl->new(); $logger->trace();
+    $user ||= ( $e->author || $app->user );
+    # $logger->debug('USER: ', l4mtdump($user || {}));
 
+    my $submitter = $e->meta('field.submitter');
+    # $logger->debug("SUBMITTER: '$submitter'");
 
-    # $logger->debug('OBJ AUTHOR: ', l4mtdump(\$oldauthor));
-    
-    
-# Anytime an entry is created in any of the blogs in the system, the plugin
-# should check the author's Persona (basename: persona, tag: AuthorDataPersona)
-# custom field.  If the value is something other than 0 (which is the default
-# dropdown setting), that value should be copied into a global entry custom field
-# called Author Persona (basename: authorpersona, tag: EntryDataAuthorPersona).
-# 
-# The plugin should not update this entry custom field when another
-# user edit's the entry. The only time the field should change is if
-# the author of the entry changes. (e.g. batch edit, Ghostwriter plugin).
-# The Persona evaluation should happen again on save if/when the author changes.
-
-    # $logger->debug('Stuffz: ', l4mtdump(
-    #     {
-    #     '$obj->id' => $obj->id,
-    #     '$obj->author_id' => $obj->author_id,
-    #     '$original->author_id' => $original->author_id,
-    #     '$obj->is_changed(author_id)' => $obj->is_changed('author_id'),
-    #     '$original->is_changed(author_id)' => $original->is_changed('author_id'),
-    #     '$obj->class_type' => $obj->class_type,
-    #     }
-    # ));
-
+    if ( $user and ! $submitter ) {
+        # $logger->info('SAVING SUBMITTER ID: ', $user->id);
+        $e->meta('field.submitter', $user->id);
+        $app->param(entry_submitter_field(), $user->id);
+        $app->param('customfield_beacon', 1);
+    }
 }
 
 sub persist_user_persona {
@@ -149,7 +100,8 @@ sub persist_user_persona {
     my $epersona     = persona( $e );
     my $persona      = persona( $user || $e->author ) or return;
     if ( $persona ne $epersona ) {
-        $app->param(entry_cust_field(), $persona);
+        # $logger->info('SAVING PERSONA: ', $persona);
+        $app->param(entry_persona_field(), $persona);
         $app->param('customfield_beacon', 1);
     }
     return $persona;
@@ -161,14 +113,6 @@ sub persona {
                   : $obj->isa( MT->model('user') )  ? $persona_meta{user}
                                                     : undef;
     return defined $fieldname ? $obj->meta($fieldname): undef;
-}
-
-
-sub cms_post_save_entry {
-    my ($cb, $app, $obj, $orig) = @_;
-    # $logger ||= MT::Log::Log4perl->new(); $logger->trace();
-    # $logger->debug('$obj post save: ', l4mtdump($obj));
-    # $logger->debug('$obj->meta_obj: ', l4mtdump($obj->meta_obj));
 }
 
 1;

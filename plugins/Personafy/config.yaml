@@ -1,5 +1,5 @@
 name: Personafy
-version: 1.1
+version: 1.2
 id: Personafy
 key: Personafy
 author_name: Jay Allen, Endevver Consulting
@@ -11,5 +11,3 @@ doc_link: http://endevver.com/plugins/anon-public-posts
 callbacks:
     api_pre_save.entry: $Personafy::Personafy::api_pre_save_entry 
     cms_pre_save.entry: $Personafy::Personafy::cms_pre_save_entry
-    # MT::Entry::pre_save: $Personafy::Personafy::obj_pre_save_entry
-    # cms_post_save.entry: $Personafy::Personafy::cms_post_save_entry
